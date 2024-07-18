@@ -8,7 +8,6 @@
 #include <stdlib.h>
 
 #define MAX_USERNAME_LEN 39
-#define SETTINGS_COUNT 10
 #define MAX_USERS 100
 #define INVALID_USER_ID -1
 

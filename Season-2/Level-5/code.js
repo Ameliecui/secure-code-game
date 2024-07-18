@@ -1,58 +1,59 @@
-// Welcome to Secure Code Game Season-2/Level-5!
+# Welcome to Secure Code Game Season-1/Level-5!
 
-// This is the last level of this season, good luck!
+# This is the last level of our first season, good luck!
 
-var CryptoAPI = (function() {
-	var encoding = {
-		a2b: function(a) { },
-		b2a: function(b) { }
-	};
+import binascii
+import random
+import secrets
+import hashlib
+import os
+import bcrypt
 
-	var API = {
-		sha1: {
-			name: 'sha1',
-			identifier: '2b0e03021a',
-			size: 20,
-			block: 64,
-			hash: function(s) {
-				var len = (s += '\x80').length,
-					blocks = len >> 6,
-					chunk = len & 63,
-					res = "",
-					i = 0,
-					j = 0,
-					H = [0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0],
-					w = [];
-					
-				while (chunk++ != 56) {
-					s += "\x00";
-					if (chunk == 64) {
-						blocks++;
-						chunk = 0;
-					}
-				}
-				
-				for (s += "\x00\x00\x00\x00", chunk = 3, len = 8 * (len - 1); chunk >= 0; chunk--) {
-					s += encoding.b2a(len >> (8 * chunk) & 255);
-				}
-					
-				for (i = 0; i < s.length; i++) {
-					j = (j << 8) + encoding.a2b(s[i]);
-					if ((i & 3) == 3) {
-						w[(i >> 2) & 15] = j;
-						j = 0;
-					}
-					if ((i & 63) == 63) CryptoAPI.sha1._round(H, w);
-				}
-				
-				for (i = 0; i < H.length; i++)
-					for (j = 3; j >= 0; j--)
-						res += encoding.b2a(H[i] >> (8 * j) & 255);
-				return res;
-			}, // End "hash"
-			_round: function(H, w) { }
-		} // End "sha1"
-	}; // End "API"
+class Random_generator:
 
-	return API; // End body of anonymous function
-})(); // End "CryptoAPI"
+    # generates a random token
+    def generate_token(self, length=8, alphabet=(
+    '0123456789'
+    'abcdefghijklmnopqrstuvwxyz'
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    )):
+        return ''.join(random.choice(alphabet) for _ in range(length))
+
+    # generates salt
+    def generate_salt(self, rounds=12):
+        salt = ''.join(str(random.randint(0, 9)) for _ in range(21)) + '.'
+        return f'$2b${rounds}${salt}'.encode()
+
+class SHA256_hasher:
+
+    # produces the password hash by combining password + salt because hashing
+    def password_hash(self, password, salt):
+        password = binascii.hexlify(hashlib.sha256(password.encode()).digest())
+        password_hash = bcrypt.hashpw(password, salt)
+        return password_hash.decode('ascii')
+
+    # verifies that the hashed password reverses to the plain text version on verification
+    def password_verification(self, password, password_hash):
+        password = binascii.hexlify(hashlib.sha256(password.encode()).digest())
+        password_hash = password_hash.encode('ascii')
+        return bcrypt.checkpw(password, password_hash)
+
+class MD5_hasher:
+
+    # same as above but using a different algorithm to hash which is MD5
+    def password_hash(self, password):
+        return hashlib.md5(password.encode()).hexdigest()
+
+    def password_verification(self, password, password_hash):
+        password = self.password_hash(password)
+        return secrets.compare_digest(password.encode(), password_hash.encode())
+
+# a collection of sensitive secrets necessary for the software to operate
+PRIVATE_KEY = os.environ.get('PRIVATE_KEY')
+PUBLIC_KEY = os.environ.get('PUBLIC_KEY')
+SECRET_KEY = 'TjWnZr4u7x!A%D*G-KaPdSgVkXp2s5v8'
+PASSWORD_HASHER = 'MD5_hasher'
+
+
+# Contribute new levels to the game in 3 simple steps!
+# Read our Contribution Guideline at github.com/skills/secure-code-game/blob/main/CONTRIBUTING.md
